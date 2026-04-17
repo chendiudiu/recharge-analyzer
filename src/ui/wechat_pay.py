@@ -1,9 +1,9 @@
 
 
 WECHAT_CONFIG = {
-    "APPID": "",
-    "MCHID": "",
-    "API_KEY": "",
+    "APPID": "wx8397f8696b538317",
+    "MCHID": "1473426802",
+    "API_KEY": "T6m9iK73b0kn9g5v426MKfHQH7X8rKwb",
     "CERT_PATH": "",
     "KEY_PATH": "",
     "NOTIFY_URL": "",
@@ -55,7 +55,10 @@ def create_native_order(amount, order_id, description="会员充值"):
 
     params["sign"] = generate_sign(params, cfg["API_KEY"])
 
-    resp = requests.post(url, data=params, cert=(cfg["CERT_PATH"], cfg["KEY_PATH"]), timeout=10)
+    if cfg["CERT_PATH"] and cfg["KEY_PATH"]:
+        resp = requests.post(url, data=params, cert=(cfg["CERT_PATH"], cfg["KEY_PATH"]), timeout=10)
+    else:
+        resp = requests.post(url, data=params, timeout=10)
 
     import xml.etree.ElementTree as ET
     root = ET.fromstring(resp.content)
@@ -82,7 +85,10 @@ def query_order_status(order_id):
     }
     params["sign"] = generate_sign(params, cfg["API_KEY"])
 
-    resp = requests.post(url, data=params, cert=(cfg["CERT_PATH"], cfg["KEY_PATH"]), timeout=10)
+    if cfg["CERT_PATH"] and cfg["KEY_PATH"]:
+        resp = requests.post(url, data=params, cert=(cfg["CERT_PATH"], cfg["KEY_PATH"]), timeout=10)
+    else:
+        resp = requests.post(url, data=params, timeout=10)
 
     import xml.etree.ElementTree as ET
     root = ET.fromstring(resp.content)
