@@ -1,9 +1,11 @@
 import tkinter as tk
+import tkinter.ttk as ttk
 from tkinter import filedialog, messagebox
 import pandas as pd
 from src.utils.excel_reader import ExcelReader
 from src.utils.excel_writer import ExcelWriter
 from src.core.processor import Processor
+from src.ui.wechat_pay_gui import open_wechat_pay
 
 
 class App:
@@ -13,7 +15,19 @@ class App:
         self.root.geometry("600x500")
         self.input_file = None
         self.result_df = None
+        self._create_menu()
         self.setup_ui()
+
+    def _create_menu(self):
+        menubar = tk.Menu(self.root)
+        self.root.config(menu=menubar)
+
+        tools_menu = tk.Menu(menubar, tearoff=0)
+        menubar.add_cascade(label="工具", menu=tools_menu)
+        tools_menu.add_command(label="微信支付充值", command=self._open_wechat_pay)
+
+    def _open_wechat_pay(self):
+        open_wechat_pay(self.root)
 
     def setup_ui(self):
         frame = tk.Frame(self.root, padx=20, pady=20)
@@ -32,7 +46,7 @@ class App:
 
         tk.Label(frame, text="处理结果预览:").pack(anchor="w", pady=(20, 5))
 
-        self.tree = tk.ttk.Treeview(frame, columns=("门店", "金额", "笔数"), show="headings", height=15)
+        self.tree = ttk.Treeview(frame, columns=("门店", "金额", "笔数"), show="headings", height=15)
         self.tree.heading("门店", text="消费门店名称")
         self.tree.heading("金额", text="充值金额")
         self.tree.heading("笔数", text="净笔数")
