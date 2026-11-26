@@ -1,15 +1,13 @@
-
-
 WECHAT_CONFIG = {
     "APPID": "wx8397f8696b538317",
     "MCHID": "1473426802",
-    "API_KEY": "T6m9iK73b0kn9g5v426MKfHQH7X8rKwb",
     "CERT_PATH": "",
     "KEY_PATH": "",
     "NOTIFY_URL": "",
 }
 
 import hashlib
+import os
 import time
 import random
 import string
@@ -17,8 +15,13 @@ import requests
 from urllib.parse import urlencode
 
 
+def _payment_config():
+    return {**WECHAT_CONFIG, "API_KEY": os.environ.get("WECHAT_PAY_API_V2_KEY", "").strip()}
+
+
 def is_configured():
-    return bool(WECHAT_CONFIG.get("APPID") and WECHAT_CONFIG["APPID"] != "")
+    cfg = _payment_config()
+    return all(cfg.get(name) for name in ("APPID", "MCHID", "API_KEY"))
 
 
 def generate_order_id():
@@ -34,8 +37,8 @@ def generate_sign(params, api_key):
 
 
 def create_native_order(amount, order_id, description="会员充值"):
-    cfg = WECHAT_CONFIG
-    if not is_configured():
+    cfg = _payment_config()
+    if not all(cfg.get(name) for name in ("APPID", "MCHID", "API_KEY")):
         raise ValueError("WECHAT_CONFIG未配置")
 
     url = "https://api.mch.weixin.qq.com/pay/unifiedorder"
@@ -70,8 +73,8 @@ def create_native_order(amount, order_id, description="会员充值"):
 
 
 def query_order_status(order_id):
-    cfg = WECHAT_CONFIG
-    if not is_configured():
+    cfg = _payment_config()
+    if not all(cfg.get(name) for name in ("APPID", "MCHID", "API_KEY")):
         return {"success": False, "trade_state": "NOT_CONFIGURED"}
 
     url = "https://api.mch.weixin.qq.com/pay/orderquery"

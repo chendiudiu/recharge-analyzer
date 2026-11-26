@@ -7,7 +7,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from src.ui.wechat_pay import (
     is_configured, generate_order_id, create_native_order, 
-    query_order_status, create_demo_order
+    query_order_status
 )
 
 
@@ -32,7 +32,7 @@ class WeChatPayWindow:
         tk.Label(frame, text="微信支付充值", font=("Arial", 14, "bold")).pack(pady=(0, 5))
 
         if not is_configured():
-            tk.Label(frame, text="[演示模式] 请配置微信支付参数", fg="orange", font=("Arial", 10)).pack(pady=5)
+            tk.Label(frame, text="微信支付未配置，暂不可充值", fg="orange", font=("Arial", 10)).pack(pady=5)
 
         tk.Label(frame, text="选择充值金额:", font=("Arial", 11)).pack(pady=10)
 
@@ -57,21 +57,18 @@ class WeChatPayWindow:
         tk.Button(frame, text="关闭", command=self.win.destroy, width=10).pack(pady=10)
 
     def _generate_qr(self):
+        if not is_configured():
+            messagebox.showerror("微信支付未配置", "请配置微信支付 APIv2 密钥后再试。")
+            return
+
         try:
             amount = float(self.amount_var.get())
             order_id = generate_order_id()
             self.order = {"id": order_id, "amount": amount}
             self._poll_count = 0
 
-            if is_configured():
-                code_url = create_native_order(amount, order_id)
-                self.status.config(text="请使用微信扫码支付", fg="blue")
-            else:
-                demo = create_demo_order(amount, order_id)
-                code_url = demo["qr_content"]
-                self.status.config(text="演示模式：5秒后自动确认", fg="orange")
-                self._demo_wait(amount)
-                messagebox.showinfo("演示模式", "演示模式：5秒后自动确认支付")
+            code_url = create_native_order(amount, order_id)
+            self.status.config(text="请使用微信扫码支付", fg="blue")
 
             self._display_qr(code_url)
             self._start_poll(amount)
@@ -90,13 +87,6 @@ class WeChatPayWindow:
         except Exception:
             self.qr_label.config(text=f"二维码内容:\n{code_url[:60]}...")
 
-    def _demo_wait(self, amount):
-        def check():
-            self.status.config(text="✓ 演示模式：支付已确认", fg="green")
-            messagebox.showinfo("支付成功", f"演示模式：充值 {amount} 元成功！")
-            if self.on_success:
-                self.on_success(amount)
-        self.win.after(5000, check)
 
     def _start_poll(self, amount):
         self.progress.config(text="等待支付中...", fg="blue")
